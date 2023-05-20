@@ -5,16 +5,27 @@ public class ChessboardGenerator : MonoBehaviour
     [System.Serializable]
     private class ChessboardReferences
     {
-        [SerializeField]
-        [RequiredReference]
+        [SerializeField, RequiredReference]
         private Shader chessboardShader;
 
+        [SerializeField, ReadOnly]
         private Material whiteMaterial;
+        [SerializeField, ReadOnly]
         private Material blackMaterial;
 
-        public Shader ChessboardShader { get { return chessboardShader; } }
-        public Material WhiteMaterial { get { return whiteMaterial; } }
-        public Material BlackMaterial { get { return blackMaterial; } }
+        public Shader ChessboardShader { get => chessboardShader; }
+        public Material WhiteMaterial { get => whiteMaterial; }
+        public Material BlackMaterial { get => blackMaterial; }
+
+        // Additional method to create and assign materials
+        public void CreateMaterials()
+        {
+            whiteMaterial = new Material(chessboardShader);
+            whiteMaterial.color = Color.white;
+
+            blackMaterial = new Material(chessboardShader);
+            blackMaterial.color = Color.black;
+        }
     }
 
     [System.Serializable]
@@ -29,9 +40,9 @@ public class ChessboardGenerator : MonoBehaviour
         [SerializeField]
         private Vector3 boardPosition = Vector3.zero;
 
-        public float SquareSize { get { return squareSize; } }
-        public float CubeHeight { get { return cubeHeight; } }
-        public Vector3 BoardPosition { get { return boardPosition; } }
+        public float SquareSize { get => squareSize;  }
+        public float CubeHeight { get => cubeHeight; }
+        public Vector3 BoardPosition { get => boardPosition; }
     }
 
     [SerializeField]
@@ -131,6 +142,9 @@ public class ChessboardGenerator : MonoBehaviour
 
     void Start()
     {
+        // Create the materials
+        references.CreateMaterials();
+        
         GenerateChessboard();
     }
 }
