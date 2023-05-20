@@ -1,0 +1,51 @@
+# Unity generated
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Pp]rojectSettings/
+/[Pp]ackages/
+/[Aa]ssets/AssetStoreTools*
+/[Aa]ssets/GoogleMobileAds/*
+/[Aa]ssets/Photon/
+/[Aa]ssets/Plugins/Editor/
+/[Ss]treamingAssets/
+/[Bb]uild/[Ww]eb/[Ww]eb[Oo]pen[Gl]*
+/[Bb]uild/[Ss]tandalone[Ss]upport*[Cc]onsole*
+/[Bb]uild/[Ss]tandalone[Ss]upport*[Cc]rashhandler*
+/[Bb]uild/[Mm]etro/[Ss]tatePrefixes*
+/[Bb]uild/[Ww]indows[Ss]tore[8-9]/
+/[Bb]uild/[Ww]indows[Ss]toreApps/
+/[Bb]uild/[Cc]aptured[Aa]ssets/
+/[Bb]uild/[Dd]emo[Ss]cenes/
+
+# Visual Studio / MonoDevelop
+.vs/
+.vscode/
+.sln
+.suo
+.ntvs*
+*.unityproj
+*.userprefs
+*.pidb
+.*.swp
+
+# Mac-specific files
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+[Tt]humbs.db
+
+# Build artifacts
+*.apk
+*.unitypackage
+*.exe
+*.dll
+*.class
+*.so
