@@ -36,22 +36,13 @@ public class TileFactory
     private void SetTileMaterial(GameObject tile, int row, int col)
     {
         Renderer tileRenderer = tile.GetComponent<Renderer>();
-        if (combinedMaterial == null)
-        {
-            combinedMaterial = new Material(whiteMaterial.shader);
-            combinedMaterial.CopyPropertiesFromMaterial(whiteMaterial);
-            combinedMaterial.name = "CombinedTileMaterial";
-        }
-
         if ((row + col) % 2 == 0)
         {
-            tileRenderer.material = combinedMaterial;
-            tileRenderer.material.color = Color.white;
+            tileRenderer.material = whiteMaterial;
         }
         else
         {
-            tileRenderer.material = combinedMaterial;
-            tileRenderer.material.color = Color.black;
+            tileRenderer.material = blackMaterial;
         }
     }
 
