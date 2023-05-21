@@ -29,7 +29,10 @@ public class ChessboardGenerator : MonoBehaviour
     private Dictionary<string, Vector3> tiles;
 
     // Instance of TileFactory
-    private TileFactory tileFactory; 
+    private TileFactory tileFactory;
+
+    // List to store created tile game objects
+    private List<GameObject> createdTiles; 
 
     /// <summary>
     /// Generates the chessboard with tiles.
@@ -38,6 +41,9 @@ public class ChessboardGenerator : MonoBehaviour
     {
         // Initialize the dictionary to store tiles
         tiles = new Dictionary<string, Vector3>();
+
+        // Initialize the list to store created tiles
+        createdTiles = new List<GameObject>();
 
         for (int row = 0; row < size; row++)
         {
@@ -56,6 +62,10 @@ public class ChessboardGenerator : MonoBehaviour
                 // Calculate center position
                 position += new Vector3(settings.SquareSize * 0.5f, 0f, settings.SquareSize * 0.5f);
                 tiles[key] = position;
+
+                // Add the tile to the list of created tiles
+                createdTiles.Add(tile); 
+
             }
         }
     }
@@ -71,54 +81,22 @@ public class ChessboardGenerator : MonoBehaviour
         return new Vector3(row * settings.SquareSize, 0, col * settings.SquareSize);
     }
 
-    /*
     /// <summary>
-    /// Creates a tile GameObject at the specified position.
+    /// Cleans up the tile meshes.
+    /// If the createdTiles list is null, the method returns without further execution.
     /// </summary>
-    /// <param name="position">The position at which to create the tile.</param>
-    /// <param name="row">The row index of the tile.</param>
-    /// <param name="col">The column index of the tile.</param>
-    /// <returns>The created tile GameObject.</returns>
-    GameObject CreateTile(Vector3 position, int row, int col)
+    private void CleanupTiles()
     {
-        GameObject tile = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        tile.transform.position = position;
-        SetTileSize(tile);
-        SetTileMaterial(tile, row, col);
-        SetTileParent(tile);
-        return tile;
-    }
-    /// <summary>
-    /// Sets the size of the tile GameObject.
-    /// </summary>
-    /// <param name="tile">The tile GameObject to set the size for.</param>
-    void SetTileSize(GameObject tile)
-    {
-        tile.transform.localScale = new Vector3(settings.SquareSize, settings.CubeHeight, settings.SquareSize);
-    }
+        if (createdTiles == null)
+            return;
 
-    /// <summary>
-    /// Sets the material of the tile based on its position on the chessboard.
-    /// </summary>
-    /// <param name="tile">The tile GameObject to set the material for.</param>
-    /// <param name="row">The row index of the tile.</param>
-    /// <param name="col">The column index of the tile.</param>
-    void SetTileMaterial(GameObject tile, int row, int col)
-    {
-        Renderer tileRenderer = tile.GetComponent<Renderer>();
-        tileRenderer.material = (row + col) % 2 == 0 ? whiteMaterial : blackMaterial;
-    }
+        foreach (GameObject tile in createdTiles)
+        {
+            Destroy(tile);
+        }
 
-    /// <summary>
-    /// Sets the parent of the tile GameObject to the ChessboardGenerator.
-    /// </summary>
-    /// <param name="tile">The tile GameObject to set the parent for.</param>
-    void SetTileParent(GameObject tile)
-    {
-        tile.transform.parent = transform;
+        createdTiles.Clear();
     }
-
-    */
 
     /// <summary>
     /// Names the tile GameObject based on its position on the chessboard.
@@ -155,11 +133,16 @@ public class ChessboardGenerator : MonoBehaviour
 
     public void GenerateBoard(ref Material whiteMaterial, ref Material blackMaterial)
     {
-
         // Create an instance of TileFactory
-        tileFactory = new TileFactory(ref whiteMaterial, ref blackMaterial, settings.SquareSize, settings.CubeHeight, transform);
+        tileFactory = new TileFactory(ref whiteMaterial, ref blackMaterial, settings.SquareSize, settings.CubeHeight, transform, size);
 
         // Generate the chessboard
         GenerateChessboard();
+
+        // Combine the tile meshes into a single mesh
+        tileFactory.CombineTilesIntoMesh();
+
+        // Clean up the tile meshes
+        CleanupTiles();
     }
 }
