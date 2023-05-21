@@ -110,6 +110,21 @@ public class ChessboardGenerator : MonoBehaviour
         tile.name = letters[col] + (size - row).ToString();
     }
 
+    /// <summary>
+    /// Gets the file name corresponding to the given file index.
+    /// </summary>
+    /// <param name="index">The file index.</param>
+    /// <returns>The file name.</returns>
+    public string GetFileNameFromIndex(int index)
+    {
+        if (index >= 0 && index < size)
+        {
+            return letters[index];
+        }
+
+        return string.Empty;
+    }
+
     public Vector3 GetPositionByFileRank(string file, int rank)
     {
         string key = file + rank.ToString();
