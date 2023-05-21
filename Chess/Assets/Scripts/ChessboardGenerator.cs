@@ -1,150 +1,165 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class ChessboardGenerator : MonoBehaviour
 {
-    [System.Serializable]
-    private class ChessboardReferences
-    {
-        [SerializeField, RequiredReference]
-        private Shader chessboardShader;
-
-        [SerializeField, ReadOnly]
-        private Material whiteMaterial;
-        [SerializeField, ReadOnly]
-        private Material blackMaterial;
-
-        public Shader ChessboardShader { get => chessboardShader; }
-        public Material WhiteMaterial { get => whiteMaterial; }
-        public Material BlackMaterial { get => blackMaterial; }
-
-        // Additional method to create and assign materials
-        public void CreateMaterials()
-        {
-            whiteMaterial = new Material(chessboardShader);
-            whiteMaterial.color = Color.white;
-
-            blackMaterial = new Material(chessboardShader);
-            blackMaterial.color = Color.black;
-        }
-    }
-
     [System.Serializable]
     private class ChessboardSettings
     {
         [SerializeField]
         private float squareSize = 1.0f;
-
         [SerializeField]
         private float cubeHeight = 1.0f;
-
         [SerializeField]
         private Vector3 boardPosition = Vector3.zero;
 
-        public float SquareSize { get => squareSize;  }
+        public float SquareSize { get => squareSize; }
         public float CubeHeight { get => cubeHeight; }
         public Vector3 BoardPosition { get => boardPosition; }
     }
-
-    [SerializeField]
-    private ChessboardReferences references;
 
     [SerializeField]
     private ChessboardSettings settings;
 
     private string[] letters = { "A", "B", "C", "D", "E", "F", "G", "H" };
 
+    // Number of rows and columns in the chessboard
+    private const int size = 8;
+
+    private Dictionary<string, Vector3> tiles;
+
+    // Instance of TileFactory
+    private TileFactory tileFactory; 
+
     /// <summary>
-    /// Generates the chessboard with cubes.
+    /// Generates the chessboard with tiles.
     /// </summary>
-    void GenerateChessboard()
+    private void GenerateChessboard()
     {
-        int size = 8; // Number of rows and columns in the chessboard
+        // Initialize the dictionary to store tiles
+        tiles = new Dictionary<string, Vector3>();
 
         for (int row = 0; row < size; row++)
         {
             for (int col = 0; col < size; col++)
             {
-                Vector3 position = CalculateCubePosition(row, col);
-                position += settings.BoardPosition; // Add board position offset
-                GameObject cube = CreateCube(position);
-                SetCubeSize(cube);
-                SetCubeMaterial(cube, row, col);
-                SetCubeParent(cube);
-                NameCube(cube, col, row, size);
+                Vector3 position = CalculateTilePosition(row, col);
+                position += settings.BoardPosition;
+
+                // Use the TileFactory to create the tile
+                GameObject tile = tileFactory.CreateTile(position, row, col, size);
+
+                NameTile(tile, col, row, size);
+
+                // Store the tile in the dictionary using the file and rank coordinates as the key
+                string key = GetTileKey(col, row); 
+                // Calculate center position
+                position += new Vector3(settings.SquareSize * 0.5f, 0f, settings.SquareSize * 0.5f);
+                tiles[key] = position;
             }
         }
     }
 
     /// <summary>
-    /// Calculates the position of a cube based on the row and column indices.
+    /// Calculates the position of a tile based on the row and column indices.
     /// </summary>
-    /// <param name="row">The row index of the cube.</param>
-    /// <param name="col">The column index of the cube.</param>
-    /// <returns>The calculated position of the cube.</returns>
-    Vector3 CalculateCubePosition(int row, int col)
+    /// <param name="row">The row index of the tile.</param>
+    /// <param name="col">The column index of the tile.</param>
+    /// <returns>The calculated position of the tile.</returns>
+    Vector3 CalculateTilePosition(int row, int col)
     {
         return new Vector3(row * settings.SquareSize, 0, col * settings.SquareSize);
     }
 
+    /*
     /// <summary>
-    /// Creates a cube GameObject at the specified position.
+    /// Creates a tile GameObject at the specified position.
     /// </summary>
-    /// <param name="position">The position at which to create the cube.</param>
-    /// <returns>The created cube GameObject.</returns>
-    GameObject CreateCube(Vector3 position)
+    /// <param name="position">The position at which to create the tile.</param>
+    /// <param name="row">The row index of the tile.</param>
+    /// <param name="col">The column index of the tile.</param>
+    /// <returns>The created tile GameObject.</returns>
+    GameObject CreateTile(Vector3 position, int row, int col)
     {
-        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        cube.transform.position = position;
-        return cube;
+        GameObject tile = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        tile.transform.position = position;
+        SetTileSize(tile);
+        SetTileMaterial(tile, row, col);
+        SetTileParent(tile);
+        return tile;
+    }
+    /// <summary>
+    /// Sets the size of the tile GameObject.
+    /// </summary>
+    /// <param name="tile">The tile GameObject to set the size for.</param>
+    void SetTileSize(GameObject tile)
+    {
+        tile.transform.localScale = new Vector3(settings.SquareSize, settings.CubeHeight, settings.SquareSize);
     }
 
     /// <summary>
-    /// Sets the size of the cube GameObject.
+    /// Sets the material of the tile based on its position on the chessboard.
     /// </summary>
-    /// <param name="cube">The cube GameObject to set the size for.</param>
-    void SetCubeSize(GameObject cube)
+    /// <param name="tile">The tile GameObject to set the material for.</param>
+    /// <param name="row">The row index of the tile.</param>
+    /// <param name="col">The column index of the tile.</param>
+    void SetTileMaterial(GameObject tile, int row, int col)
     {
-        cube.transform.localScale = new Vector3(settings.SquareSize, settings.CubeHeight, settings.SquareSize);
+        Renderer tileRenderer = tile.GetComponent<Renderer>();
+        tileRenderer.material = (row + col) % 2 == 0 ? whiteMaterial : blackMaterial;
     }
 
     /// <summary>
-    /// Sets the material of the cube based on its position on the chessboard.
+    /// Sets the parent of the tile GameObject to the ChessboardGenerator.
     /// </summary>
-    /// <param name="cube">The cube GameObject to set the material for.</param>
-    /// <param name="row">The row index of the cube.</param>
-    /// <param name="col">The column index of the cube.</param>
-    void SetCubeMaterial(GameObject cube, int row, int col)
+    /// <param name="tile">The tile GameObject to set the parent for.</param>
+    void SetTileParent(GameObject tile)
     {
-        Renderer cubeRenderer = cube.GetComponent<Renderer>();
-        cubeRenderer.material = (row + col) % 2 == 0 ? references.WhiteMaterial : references.BlackMaterial;
+        tile.transform.parent = transform;
     }
 
-    /// <summary>
-    /// Sets the parent of the cube GameObject to the ChessboardGenerator.
-    /// </summary>
-    /// <param name="cube">The cube GameObject to set the parent for.</param>
-    void SetCubeParent(GameObject cube)
-    {
-        cube.transform.parent = transform;
-    }
+    */
 
     /// <summary>
-    /// Names the cube GameObject based on its position on the chessboard.
+    /// Names the tile GameObject based on its position on the chessboard.
     /// </summary>
-    /// <param name="cube">The cube GameObject to name.</param>
-    /// <param name="col">The column index of the cube.</param>
-    /// <param name="row">The row index of the cube.</param>
+    /// <param name="tile">The tile GameObject to name.</param>
+    /// <param name="col">The column index of the tile.</param>
+    /// <param name="row">The row index of the tile.</param>
     /// <param name="size">The size of the chessboard.</param>
-    void NameCube(GameObject cube, int col, int row, int size)
+    void NameTile(GameObject tile, int col, int row, int size)
     {
-        cube.name = letters[col] + (size - row).ToString();
+        tile.name = letters[col] + (size - row).ToString();
     }
 
-    void Start()
+    public Vector3 GetPositionByFileRank(string file, int rank)
     {
-        // Create the materials
-        references.CreateMaterials();
-        
+        string key = file + rank.ToString();
+
+        if (tiles.ContainsKey(key))
+        {
+            // Retrieve the center position from the dictionary
+            return tiles[key];
+        }
+
+        return Vector3.zero; // Default position if tile not found
+    }
+
+    private string GetTileKey(int col, int row)
+    {
+        string file = letters[col];
+        int rank = size - row;
+
+        return file + rank.ToString();
+    }
+
+    public void GenerateBoard(ref Material whiteMaterial, ref Material blackMaterial)
+    {
+
+        // Create an instance of TileFactory
+        tileFactory = new TileFactory(ref whiteMaterial, ref blackMaterial, settings.SquareSize, settings.CubeHeight, transform);
+
+        // Generate the chessboard
         GenerateChessboard();
     }
 }
